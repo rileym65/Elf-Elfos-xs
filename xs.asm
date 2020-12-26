@@ -37,6 +37,8 @@ include    kernel.inc
            br      start
 
 include    date.inc
+include    build.inc
+           db      'Written by Michael H. Riley',0
 
 fildes:    db      0,0,0,0
            dw      dta
@@ -50,13 +52,24 @@ dta:       equ     7000h
 dtapage:   equ     070h
 stack:     equ     7fffh
 
-start:     ghi     ra                  ; copy argument address to rf
+start:     lda     ra                  ; move past any spaces
+           smi     ' '
+           lbz     start
+           dec     ra                  ; move back to non-space character
+           ghi     ra                  ; copy argument address to rf
+           ldn     ra                  ; get byte
+           lbnz    start1              ; jump if argument given
+           sep     scall               ; otherwise display usage message
+           dw      f_inmsg
+           db      'Usage: xs filename',10,13,0
+           sep     sret                ; and return to os
+start1:    ghi     ra                  ; copy argument address to rf
            phi     rf
            glo     ra
            plo     rf
 loop1:     lda     ra                  ; look for first less <= space
            smi     33
-           bdf     loop1
+           lbdf    loop1
            dec     ra                  ; backup to char
            ldi     0                   ; need proper termination
            str     ra
@@ -68,7 +81,7 @@ loop1:     lda     ra                  ; look for first less <= space
            plo     r7
            sep     scall               ; attempt to open file
            dw      o_open
-           bnf     opened              ; jump if file opened
+           lbnf    opened              ; jump if file opened
            ldi     high errmsg         ; point to error message
            phi     rf
            ldi     low errmsg
@@ -289,7 +302,7 @@ xclosewd:  ldi     eot                ; need to send eot
 ; ***** branches, care must be taken that the short branches are all *****
 ; ***** in page                                                      *****
 ; ************************************************************************
-           org     2200h
+           org     2300h
 tty:       plo     re
            push    rf                  ; save consumed registers
            push    rd
