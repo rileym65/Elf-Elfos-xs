@@ -60,7 +60,7 @@ start:     lda     ra                  ; move past any spaces
            ldn     ra                  ; get byte
            lbnz    start1              ; jump if argument given
            sep     scall               ; otherwise display usage message
-           dw      f_inmsg
+           dw      o_inmsg
            db      'Usage: xs filename',10,13,0
            sep     sret                ; and return to os
 start1:    ghi     ra                  ; copy argument address to rf
